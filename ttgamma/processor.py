@@ -104,7 +104,7 @@ class TTGammaProcessor(processor.ProcessorABC):
             'photon_chIso': hist.Hist("$\gamma$-Counts", phoCategory_axis, lep_axis, systematic_axis, chIso_axis,dataset_axis),
 
             ## book histogram for photon/lepton mass in a 3j0t region
-            #'photon_lepton_mass_3j0t': hist.Hist(“(3+1Tag) Jet Mass”, phoCategory_axis,dataset_axis),
+            'photon_lepton_mass_3j0t': hist.Hist("(3+1Tag) Jet Mass", mass_axis, phoCategory_axis,dataset_axis,lep_axis, systematic_axis),
 
             ## book histogram for M3 variable
             'M3': hist.Hist("M$_3$", phoCategory_axis, m3_axis,lep_axis, systematic_axis, dataset_axis),
