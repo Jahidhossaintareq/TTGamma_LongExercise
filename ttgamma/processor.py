@@ -216,7 +216,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         else:
             passOverlapRemoval = np.ones_like(len(events))==1
             
-        """
+        
         ##################
         # OBJECT SELECTION
         ##################
@@ -226,10 +226,11 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         #select tight muons
         # tight muons should have a pt of at least 30 GeV, |eta| < 2.4, pass the tight muon ID cut (tightID variable), and have a relative isolation of less than 0.15
-        muonSelectTight = ((?) & 
-                           (?) & 
-                           (?) & 
-                           (?)
+        
+        muonSelectTight = ((events.Muon.pt>30) &  
+                           (abs(events.Muon.eta)<2.4) & 
+                           (events.Muon.tightId) & 
+                           (events.Muon.pfRelIso04_all < 0.15)
                           )
 
         #select loose muons        
@@ -254,12 +255,12 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #select tight electrons
         # tight electrons should have a pt of at least 35 GeV, |eta| < 2.1, pass the cut based electron id (cutBased variable in NanoAOD>=4), and pass the etaGap, D0, and DZ cuts defined above
-        electronSelectTight = ((?) & 
-                               (?) & 
-                               ? &      
-                               (?) &
-                               ? &
-                               ? &
+        electronSelectTight = ((events.Electron.pt>35) & 
+                               (abs(events.Electron.eta)<2.1) & 
+                               (events.Electron.cutBased >= 4) &      
+                               eleEtaGap &
+                               elePassDXY &
+                               elePassDZ 
                               )
 
         #select loose electrons
@@ -275,14 +276,14 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #  Object selection
         #select the subset of muons passing the muonSelectTight and muonSelectLoose cuts
-        tightMuon = ?
-        looseMuon = ?
+        tightMuon = events.Muon[muonSelectTight]
+        looseMuon = events.Muon[muonSelectLoose]
 
         # 1. ADD SELECTION
         #  Object selection
         #select the subset of electrons passing the electronSelectTight and electronSelectLoose cuts
-        tightElectron = ?
-        looseElectron = ?
+        tightElectron = events.Electron[electronSelectTight]
+        looseElectron = events.Electron[electronSelectTight]
 
         #### Calculate deltaR between photon and nearest lepton 
         # Remove photons that are within 0.4 of a lepton
@@ -326,11 +327,11 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #  Object selection
         #select tightPhoton, the subset of photons passing the photonSelect cut and the photonID cut        
-        tightPhoton = ?
+        tightPhoton = events.Photon[photonSelect & photonID]
         #select loosePhoton, the subset of photons passing the photonSelect cut and all photonID cuts without the charged hadron isolation cut applied (photonID_NoChIso)
-        loosePhoton = ?
+        loosePhoton = events.Photon[photonSelect & photonID_NoChIso]
         
-
+        """"
         ####
         #update jet kinematics based on jet energy corrections
         jets = events.Jet
@@ -372,16 +373,19 @@ class TTGammaProcessor(processor.ProcessorABC):
         ##medium jet ID cut
         jetIDbit = 1
 
-        jetSelectNoPt = ((?) &
+        jetSelectNoPt = ((jets.pt>30) &
                          ((jets.jetId >> jetIDbit & 1)==1) &
-                         ? & ? & ? )
+                         (abs(jets.eta)<2.4) &
+                         jetMuMask & 
+                         jetEleMask &
+                         jetPhoMask )
         
         #Add 30 GeV pt cut
-        jetSelect = jetSelectNoPt & ?
+        jetSelect = jetSelectNoPt & (jets.pt>30)
 
         # 1. ADD SELECTION
         #select the subset of jets passing the jetSelect cuts
-        tightJet = ?
+        tightJet = events.jetSelect
 
         # 1. ADD SELECTION
         # select the subset of tightJet which pass the Deep CSV tagger
@@ -709,7 +713,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         # PART 4: SYSTEMATICS
         # uncomment the full list after systematics have been implemented        
-        #systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
+        systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
 
         if not self.jetSyst=='nominal':
             systList=[self.jetSyst]
@@ -718,8 +722,8 @@ class TTGammaProcessor(processor.ProcessorABC):
             systList = ['noweight']
 
         #Fill temp hist for testing purposes
-#        output['all_photon_pt'].fill(dataset=dataset,
-#                                     pt=ak.flatten(tightPhoton.pt[:,:1]))
+        output['all_photon_pt'].fill(dataset=dataset,
+                                     pt=ak.flatten(tightPhoton.pt[:,:1]))
 
         
         for syst in systList:
