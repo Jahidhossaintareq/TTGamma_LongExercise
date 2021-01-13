@@ -714,12 +714,12 @@ class TTGammaProcessor(processor.ProcessorABC):
         ###################
         # PART 3: Uncomment to add histograms
 
-        """
+        
         systList = ['noweight','nominal']
 
         # PART 4: SYSTEMATICS
         # uncomment the full list after systematics have been implemented        
-        systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
+        #systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
 
         if not self.jetSyst=='nominal':
             systList=[self.jetSyst]
@@ -765,22 +765,22 @@ class TTGammaProcessor(processor.ProcessorABC):
                 #    fill photon_pt and photon_eta, using the tightPhotons array, from events passing the phosel selection
         
                 output['photon_pt'].fill(dataset=dataset,
-                                         pt=?,
-                                         category=?,
+                                         pt=ak.flatten(tightPhoton[eventSelection].pt),
+                                         category=phoCategory,
                                          lepFlavor=lepton,
                                          systematic=syst,
-                                         weight=?)           
+                                         weight=evtWeight[eventSelection])           
     
                 output['photon_eta'].fill(dataset=dataset,
-                                          eta=?,
-                                          category=?,
+                                          eta=ak.flatten(tightPhoton[eventSelection].eta),
+                                          category=hoCategory,
                                           lepFlavor=lepton,
                                           systematic=syst,
-                                          weight=?)
+                                          weight=evtWeight[eventSelection])
                 
                 #    fill photon_chIso histogram, using the loosePhotons array (photons passing all cuts, except the charged hadron isolation cuts)
                 output['photon_chIso'].fill(dataset=dataset,
-                                            chIso=?,
+                                            chIso=,
                                             category=?,
                                             lepFlavor=lepton,
                                             systematic=syst,
@@ -815,7 +815,7 @@ class TTGammaProcessor(processor.ProcessorABC):
                                                    lepFlavor='muon',
                                                    systematic=syst,
                                                    weight=?)
-        """
+        
 
         return output
 
