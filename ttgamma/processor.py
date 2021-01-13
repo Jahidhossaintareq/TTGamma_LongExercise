@@ -99,16 +99,15 @@ class TTGammaProcessor(processor.ProcessorABC):
             'all_photon_pt'                 : hist.Hist("Counts", dataset_axis, pt_axis),
 
             # 3. ADD HISTOGRAMS
-            ## book histograms for photon pt, eta, and charged hadron isolation
-            #'photon_pt':
-            #'photon_eta':
-            #'photon_chIso':
+            'photon_pt': hist.Hist("$\gamma$-Counts", phoCategory_axis, lep_axis, systematic_axis, pt_axis,dataset_axis),
+            'photon_eta': hist.Hist("$\gamma$-Counts", phoCategory_axis, lep_axis, systematic_axis, eta_axis,dataset_axis),
+            'photon_chIso': hist.Hist("$\gamma$-Counts", phoCategory_axis, lep_axis, systematic_axis, chIso_axis,dataset_axis),
 
             ## book histogram for photon/lepton mass in a 3j0t region
-            #'photon_lepton_mass_3j0t':
+            #'photon_lepton_mass_3j0t': hist.Hist(“(3+1Tag) Jet Mass”, phoCategory_axis,dataset_axis),
 
             ## book histogram for M3 variable
-            #'M3':
+            'M3': hist.Hist("M$_3$", phoCategory_axis, m3_axis,lep_axis, systematic_axis, dataset_axis),
 
             'EventCount'             : processor.value_accumulator(int),
         })
@@ -764,42 +763,42 @@ class TTGammaProcessor(processor.ProcessorABC):
                 #  use the selection.all() method to select events passing 
                 #  the lepton selection, 4-jet 1-tag jet selection, and either the one-photon or loose-photon selections
                 #  ex: selection.all( *('LIST', 'OF', 'SELECTION', 'CUTS') )
-                phosel = selection.all(*(??))
-                phoselLoose = selection.all(*(??) )
+                phosel = selection.all(*("jetSel","onePho",lepSel))
+                phoselLoose = selection.all(*("jetSel","loosePho",lepSel) )
 
                 # 3. FILL HISTOGRAMS
                 #    fill photon_pt and photon_eta, using the tightPhotons array, from events passing the phosel selection
         
                 output['photon_pt'].fill(dataset=dataset,
-                                         pt=ak.flatten(tightPhoton[eventSelection].pt),
-                                         category=phoCategory,
+                                         pt=ak.flatten(tightPhoton[phosel].pt,-1),
+                                         category=phoCategory[phosel],
                                          lepFlavor=lepton,
                                          systematic=syst,
-                                         weight=evtWeight[eventSelection])           
+                                         weight=evtWeight[phosel])           
     
                 output['photon_eta'].fill(dataset=dataset,
-                                          eta=ak.flatten(tightPhoton[eventSelection].eta),
-                                          category=hoCategory,
+                                          eta=ak.flatten(tightPhoton[phosel].eta,-1),
+                                          category=phoCategory[phosel],
                                           lepFlavor=lepton,
                                           systematic=syst,
-                                          weight=evtWeight[eventSelection])
+                                          weight=evtWeight[phosel])
                 
                 #    fill photon_chIso histogram, using the loosePhotons array (photons passing all cuts, except the charged hadron isolation cuts)
                 output['photon_chIso'].fill(dataset=dataset,
-                                            chIso=,
-                                            category=?,
+                                            chIso=ak.flatten(loosePhoton[phoselLoose].chIso,-1),
+                                            category=phoCategory[phosel],
                                             lepFlavor=lepton,
                                             systematic=syst,
-                                            weight=?)
+                                            weight=evtWeight[phosel])
                 
                 #    fill M3 histogram, for events passing the phosel selection
                 # Note that for M3, ak.fill_none() is also needed so there is at least one entry per event
                 output['M3'].fill(dataset=dataset,
-                                  M3=ak.flatten(ak.fill_none(???,-1)),
-                                  category=?,
+                                  M3=ak.flatten(ak.fill_none(M3[phosel],-1)),
+                                  category=phoCategory[phosel],
                                   lepFlavor=lepton,
                                   systematic=syst,
-                                  weight=?)
+                                  weight=evtWeight[phosel])
                                     
             # 3. GET HISTOGRAM EVENT SELECTION
             #  use the selection.all() method to select events passing the eleSel or muSel selection, 
@@ -810,17 +809,17 @@ class TTGammaProcessor(processor.ProcessorABC):
             
             #Fill the photon_lepton_mass histogram for events passing phosel_3j0t_e and phosel_3j0t_mu
             output['photon_lepton_mass_3j0t'].fill(dataset=dataset,
-                                                   mass=?,
-                                                   category=?
+                                                   mass=ak.flatten(egammaMass[phosel_3j0t_e]),
+                                                   category=phosel[phosel_3j0t_e],
                                                    lepFlavor='electron',
                                                    systematic=syst,
-                                                   weight=?)
+                                                   weight=evtWeight[phosel_3j0t_e])
             output['photon_lepton_mass_3j0t'].fill(dataset=dataset,
-                                                   mass=?,
-                                                   category=?,
+                                                   mass=ak.flatten(mugammaMass[phosel_3j0t_mu]),
+                                                   category=phosel[phosel_3j0t_mu],
                                                    lepFlavor='muon',
                                                    systematic=syst,
-                                                   weight=?)
+                                                   weight=evtWeight[phosel_3j0t_mu])
         
 
         return output
